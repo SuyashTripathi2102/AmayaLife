@@ -2,23 +2,24 @@ const mysql = require('../config/db');
 const bcrypt = require('bcrypt');
 const jwt = require('jsonwebtoken');
 
-exports.register = async (userdata)=>{
-    const {name,email,password,phoneNo,role} = userdata;
-    
-    const [ifExist] = await mysql.query("SELECT * FROM users WHERE email = ? ",[email]);
-    if(ifExist.length>0){
-        throw new  Error ("User already exist with this email");
+    exports.register = async (userdata)=>{
+        const {name,email,password,phoneNo,role} = userdata;
+        
+        const [ifExist] = await mysql.query("SELECT * FROM users WHERE email = ? ",[email]);
+        if(ifExist.length>0){
+            throw new  Error ("User already exist with this email");
+        }
+        const userRole = role || 'customer';
+        const hashedpassword = await bcrypt.hash(password,10);
+        const [result] = await mysql.query("INSERT INTO users (name,email,password,phoneNo,role) VALUES (?,?,?,?,?)",[name,email,hashedpassword,phoneNo,userRole]);
+        return {
+            id : result.insertId,
+            name : name,
+            email : email,
+            phoneNo : phoneNo,
+            role : role
+        }
     }
-    const hashedpassword = await bcrypt.hash(password,10);
-    const [result] = await mysql.query("INSERT INTO users (name,email,password,phoneNo,role) VALUES (?,?,?,?,?)",[name,email,hashedpassword,phoneNo,role]);
-    return {
-        id : result.insertId,
-        name : name,
-        email : email,
-        phoneNo : phoneNo,
-        role : role
-    }
-}
 
 exports.login = async (userdata)=>{
     const {email,password} = userdata;
