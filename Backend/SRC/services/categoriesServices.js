@@ -1,7 +1,7 @@
 const mysql = require('../config/db');
 
 exports.getAllCategories = async ()=>{
-    const [data] = await mysql.query ('SELECT name FROM categories');
+    const [data] = await mysql.query ('SELECT cat_id , name FROM categories');
     if(data.length==0){
         throw new Error ('No Categories Find , Contact Admin');
     }
@@ -23,3 +23,14 @@ exports.postCategories = async (userData) =>{
         name:name
     }
 }
+
+exports.deleteCategoriesbyId = async (userId) =>{
+    const id = userId;
+    const [isExist] = await mysql.query('SELECT * FROM categories WHERE cat_id = ?',[id]);
+    if(isExist.length==0){
+        throw new Error('Categorey dont exist');
+    }
+    const [DeletedCat] = await mysql.query('DELETE FROM categories WHERE cat_id =?',[id]);
+    return DeletedCat;
+}
+

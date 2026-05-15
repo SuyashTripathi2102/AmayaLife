@@ -15,7 +15,7 @@ module.exports = (req, res, next) => {
     req.user = decoded;
     next();
     }catch(error){
-        console.error('Error in authenticateToken middleware:', error);
-        return res.status(500).json({ message: 'Token Expired pls Login again' });
+        //console.error('Error in authenticateToken middleware:', error);
+        return res.status(500).json({ message: error.message });
     }
 }

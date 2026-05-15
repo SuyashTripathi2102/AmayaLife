@@ -6,6 +6,5 @@ const router = express.Router();
 
 router.get('/categories',userCategories.getAllCategories);
 router.post('/categories',authentication,roleBaseAuth('admin'),userCategories.postCategories);
-
-
+router.delete('/categories/:id',authentication,roleBaseAuth('admin'),userCategories.deleteCategoriesbyId);
 module.exports = router;

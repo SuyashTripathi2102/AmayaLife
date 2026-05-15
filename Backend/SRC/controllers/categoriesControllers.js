@@ -27,3 +27,17 @@ exports.postCategories = async (req,res)=>{
         })
     }
 }
+
+exports.deleteCategoriesbyId = async (req,res) => {
+    try{
+            const data = await categoriesServices.deleteCategoriesbyId(req.params.id);
+            res.status(200).json({
+                message : "Category Deleted by id Successfully",
+                data : data
+            })
+        }catch(error){
+            res.status(500).json({
+                message : error.message
+            })
+        } 
+}
