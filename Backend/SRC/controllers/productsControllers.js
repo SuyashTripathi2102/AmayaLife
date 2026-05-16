@@ -6,8 +6,8 @@ exports.getAllProducts = async (req,res) =>{
         const limit = parseInt(req.query.limit) || 5;
         const offset = (page-1)*limit;
         const search = req.query.search?.trim() || '';
-
-        const data = await productService.getAllProducts(page,limit,offset,search);
+        const categoryId = req.query.category_id;
+        const data = await productService.getAllProducts(page,limit,offset,search,categoryId);
         res.status(200).json({
             message : "All Products Fetched Successfully",
             data : data
@@ -18,13 +18,14 @@ exports.getAllProducts = async (req,res) =>{
         })
     }
 }
-exports.getAllAciveProducts = async (req,res) =>{
+exports.getAllActiveProducts = async (req,res) =>{
     try{
         const page = parseInt(req.query.page) || 1;
         const limit = parseInt(req.query.limit) || 5;
         const offset = (page-1)*limit;
         const search = req.query.search?.trim() || '';
-        const data = await productService.getAllAciveProducts(page,limit,offset,search);
+        const categoryId = req.query.category_id;
+        const data = await productService.getAllActiveProducts(page,limit,offset,search,categoryId);
         res.status(200).json({
             message : "All Active Products Fetched Successfully",
             data : data

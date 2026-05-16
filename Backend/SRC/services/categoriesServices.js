@@ -8,8 +8,8 @@ exports.getAllCategories = async ()=>{
     return data;
 }
 exports.getCategorybyId = async (catId) =>{
-    const{id} = catId;
-    const [data] = await mysql.query ('SELECT name FROM categories WHERE cat_id=?',[catId]);
+    const id = catId;
+    const [data] = await mysql.query ('SELECT name FROM categories WHERE cat_id=?',[id]);
     if(data.length==0){
         throw new Error ('No Category Found by Id, Contact Admin');
     }
@@ -45,7 +45,8 @@ exports.updateCategorybyId = async (catId,catData)=>{
         throw new Error ('Something Went Wrong');
     }
     return {
-        Updated
+        id : id,
+        name : UpCategoryName
     }
 }
 exports.deleteCategoriesbyId = async (userId) =>{
