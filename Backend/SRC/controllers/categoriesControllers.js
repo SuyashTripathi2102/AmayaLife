@@ -8,7 +8,35 @@ exports.getAllCategories = async (req,res) =>{
             data : data
         })
     }catch(error){
-        res.status(401).json({
+        res.status(500).json({
+            message : error.message
+        })
+    }
+}
+
+exports.getCategorybyId = async (req,res) =>{
+    try{
+        const data = await categoriesServices.getCategorybyId(req.params.id);
+        res.status(200).json({
+         message : "Category Fetched by Id SuccessFully",
+            data : data
+        })
+    }catch(error){
+        res.status(500).json({
+            message : error.message
+        })
+    }
+}
+
+exports.updateCategorybyId = async (req,res)=>{
+    try{
+        const data = await categoriesServices.updateCategorybyId(req.params.id,req.body);
+        res.status(201).json({
+         message : "Category Fetched by Id and Updated SuccessFully",
+            data : data
+        })
+    }catch(error){
+        res.status(500).json({
             message : error.message
         })
     }

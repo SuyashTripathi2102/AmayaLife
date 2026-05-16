@@ -9,6 +9,9 @@ app.use(express.json());
 app.use('/api/users',userRoutes);
 app.use('/api',userCategories);
 app.use('/api',userProducts);
+
+
+
 const PORT = process.env.PORT
 app.listen(PORT,()=>{
     console.log(`SERVER IS LISTENING ON ${PORT}`);

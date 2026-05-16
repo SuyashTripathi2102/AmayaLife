@@ -2,9 +2,31 @@ const productService = require('../services/productServices');
 
 exports.getAllProducts = async (req,res) =>{
     try{
-        const data = await productService.getAllProducts();
+        const page = parseInt(req.query.page) || 1;
+        const limit = parseInt(req.query.limit) || 5;
+        const offset = (page-1)*limit;
+        const search = req.query.search?.trim() || '';
+
+        const data = await productService.getAllProducts(page,limit,offset,search);
         res.status(200).json({
             message : "All Products Fetched Successfully",
+            data : data
+        })
+    }catch(error){
+        res.status(500).json({
+            message : error.message
+        })
+    }
+}
+exports.getAllAciveProducts = async (req,res) =>{
+    try{
+        const page = parseInt(req.query.page) || 1;
+        const limit = parseInt(req.query.limit) || 5;
+        const offset = (page-1)*limit;
+        const search = req.query.search?.trim() || '';
+        const data = await productService.getAllAciveProducts(page,limit,offset,search);
+        res.status(200).json({
+            message : "All Active Products Fetched Successfully",
             data : data
         })
     }catch(error){
@@ -28,9 +50,9 @@ try{
     }
 }
 
-exports.getPrdouctbyId = async (req,res) =>{
+exports.getProductbyId = async (req,res) =>{
     try{
-        const data = await productService.getPrdouctbyId(req.params.id);
+        const data = await productService.getProductbyId(req.params.id);
         res.status(200).json({
             message : "Product fetched by id Successfully",
             data : data
@@ -45,7 +67,7 @@ exports.getPrdouctbyId = async (req,res) =>{
 exports.updateProductbyId = async (req,res) =>{
     try{
         const data = await productService.updateProductbyId(req.params.id,req.body);
-        res.status(201).json({
+        res.status(200).json({
             message : "Product Updated by id Successfully",
             data : data
         })
@@ -59,7 +81,7 @@ exports.updateProductbyId = async (req,res) =>{
 exports.patchProductbyId = async (req,res) =>{
     try{
         const data = await productService.patchProductbyId(req.params.id,req.body);
-        res.status(201).json({
+        res.status(200).json({
             message : "Product Updated (PATCH) by id Successfully",
             data : data
         })
@@ -75,6 +97,20 @@ exports.deleteProductbyId = async (req,res) =>{
         const data = await productService.deleteProductbyId(req.params.id);
         res.status(200).json({
             message : "Product Deleted by id Successfully",
+            data : data
+        })
+    }catch(error){
+        res.status(500).json({
+            message : error.message
+        })
+    } 
+}
+
+exports.SoftDeleteProductbyId = async (req,res) =>{
+    try{
+        const data = await productService.SoftDeleteProductbyId(req.params.id);
+        res.status(200).json({
+            message : "Product Soft Deleted by id Successfully",
             data : data
         })
     }catch(error){

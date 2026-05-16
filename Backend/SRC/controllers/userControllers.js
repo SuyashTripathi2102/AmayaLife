@@ -17,7 +17,7 @@ exports.registerUser = async (req,res) =>{
 exports.loginUser = async (req,res) =>{
     try{
         const data = await userService.login(req.body);
-        res.status(201).json({
+        res.status(200).json({
             message : "User Logined successfully",
             data : data
         })

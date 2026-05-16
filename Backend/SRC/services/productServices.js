@@ -1,11 +1,42 @@
 const mysql = require ('../config/db');
 
-exports.getAllProducts = async ()=>{
-    const [data] = await mysql.query('SELECT * FROM product');
+exports.getAllProducts = async (page,limit,offset,search)=>{
+    const [data] = await mysql.query('SELECT * FROM product WHERE name LIKE ? LIMIT ? OFFSET ?',[`%${search}%`,limit,offset]);
     if(data.length==0){
         throw new Error ('Products are not avaialble pls contact Admin');
     }
-    return data;
+    const [totalCount] = await mysql.query('SELECT COUNT(*) as total FROM product WHERE name LIKE ?',[`%${search}%`]);
+    const totalProducts = totalCount[0].total;
+    const totalPages = Math.ceil(totalProducts/limit);
+    return {
+        data,
+        pagination : {
+            totalProducts,
+            CurrentPage : page,
+            totalPages : totalPages,
+            limit
+        }
+    };
+}
+
+exports.getAllAciveProducts = async (page,limit,offset,search)=>{
+    const [data] = await mysql.query('SELECT * FROM product WHERE is_active = TRUE AND name LIKE ? LIMIT ? OFFSET ?',[`%${search}%`,limit,offset]);
+    if(data.length==0){
+        throw new Error ('Products are not avaialble pls contact Admin');
+    }
+    const [totalCount] = await mysql.query("SELECT COUNT(*) as total FROM product WHERE is_active = TRUE AND name LIKE ?",[`%${search}%`]);
+    const totalProducts = totalCount[0].total;
+    const totalPages = Math.ceil(totalProducts/limit);
+
+    return {
+        data,
+        pagination : {
+            totalProducts,
+            CurrentPage : page,
+            totalPages : totalPages,
+            limit
+        }
+    };
 }
 
 exports.addNewProducts = async (userData) =>{
@@ -28,7 +59,7 @@ exports.addNewProducts = async (userData) =>{
     }
 }
 
-exports.getPrdouctbyId = async (userId) =>{
+exports.getProductbyId = async (userId) =>{
     //const{id} = userId;
     const [data] = await mysql.query('SELECT name,price,description,stock_quantity,category_id FROM product WHERE product_id= ?',[userId]);
     if(data.length==0){
@@ -93,4 +124,16 @@ exports.deleteProductbyId = async (userId) =>{
     }
     const [DeletedProduct] = await mysql.query('DELETE FROM product WHERE product_id =?',[id]);
     return DeletedProduct;
+}
+
+exports.SoftDeleteProductbyId = async (userId) =>{
+    const id = userId;
+    const is_active = "FALSE";
+    const [isExist] = await mysql.query('SELECT * FROM product WHERE product_id = ?',[id]);
+    if(isExist.length==0){
+        throw new Error('Product dont exist');
+    }
+    
+    const [SoftDeletedProduct] = await mysql.query('UPDATE product SET is_active = ? WHERE product_id =?',[is_active,id]);
+    return SoftDeletedProduct;
 }
