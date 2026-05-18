@@ -53,3 +53,40 @@ exports.uploadProductImage = async (productId,fileBuffer,isPrimary=false)=>{
         connection.release();
     }
 };
+
+exports.getAllProductsImages = async(productId) =>{
+    const [result] = await mysql.query ('SELECT * FROM images WHERE product_id = ? ORDER BY is_primary DESC',[productId]);
+    if(result.length==0){
+        throw new Error ('No Images Found pls contact Admin');
+    }
+    return result;
+};
+
+exports.deleteImagebyId = async(ImageId) =>{
+    const id = ImageId;
+    const [isExist] = await mysql.query('SELECT public_id,is_primary,product_id FROM images WHERE id = ?',[id]);
+    if(isExist.length==0){
+        throw new Error ('images not exist for this product id');
+    }
+    const ImageProduct = isExist[0];
+    const [deletedImage] = await mysql.query('DELETE FROM images WHERE id=?',[id]);
+    if(deletedImage.affectedRows==0){
+        throw new Error ('Something Went Wrong');
+    }
+    if(ImageProduct.public_id){
+       await cloudinary.uploader.destroy(ImageProduct.public_id);
+    }
+    if(ImageProduct.is_primary){
+        const [ImageP] = await mysql.query('SELECT id,is_primary FROM images WHERE product_id=? ORDER BY created_at ASC LIMIT 1',[ImageProduct.product_id]);
+        if(ImageP.length>0){
+            const NextPrimary = ImageP[0];
+            let UpdateisPrimary = true;
+            const [Update] = await mysql.query('UPDATE images SET is_primary = ? WHERE id=?',[UpdateisPrimary,NextPrimary.id]);
+            if(Update.affectedRows==0){
+                throw new Error ("Something Went Wrong next Image is not aviable to Set as primary");
+            }
+        }
+        
+    }
+    return deletedImage;
+}

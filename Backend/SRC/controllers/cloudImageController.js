@@ -6,9 +6,9 @@ exports.uploadProductImage = async (req,res)=>{
         // product id from params
         const productId = req.params.id;
 
-if(!req.file){
-    return res.status(400).json({ message: 'No image file provided' });
-}
+        if(!req.file){
+            return res.status(400).json({ message: 'No image file provided' });
+        }
 
         // uploaded image buffer
         const fileBuffer = req.file.buffer;
@@ -29,3 +29,36 @@ if(!req.file){
         });
     }
 };
+
+
+exports.getAllProductsImages = async (req,res) =>{
+    try{
+        const productId = req.params.id;
+        const data = await imageService.getAllProductsImages(productId);
+        res.status(200).json({
+                message:
+                'Image Fetched for Product by id successfully',
+                data
+            });
+    }catch(error){
+            res.status(500).json({
+                error: error.message
+            });
+        }
+};
+
+exports.deleteImagebyId = async (req,res)=>{
+    try{
+        const ImageId = req.params.id;
+        const data = await imageService.deleteImagebyId(ImageId);
+        res.status(200).json({
+                message:
+                'Image Deleted for Product by id successfully',
+                data
+            });
+    }catch(error){
+            res.status(500).json({
+                error: error.message
+            });
+        }
+}
