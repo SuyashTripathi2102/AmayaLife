@@ -13,13 +13,36 @@ exports.registerUser = async (req,res) =>{
         })
     }
 }
-
+exports.verifyMailHandler = async (req,res)=>{
+    try{
+        const data = await userService.verifyMailHandler(req.query);
+        res.status(200).json({
+            message : "Email is Verified Now you can Login"
+        })
+      
+    
+    }catch(err){
+        res.status(500).json({
+            error : err.message
+        })
+    }
+}
 exports.loginUser = async (req,res) =>{
     try{
         const data = await userService.login(req.body);
+        const {Accesstoken, Refershtoken, user} = data;
+        const isProd = process.env.ENV === 'production';
+        res.cookie ("refreshtoken",Refershtoken,{
+        httpOnly : true,
+        secure : isProd,
+        sameSite : 'lax',
+        maxAge :7*24*60*60*1000
+        })
+
         res.status(200).json({
             message : "User Logined successfully",
-            data : data
+            user : user,
+            Accesstoken :Accesstoken
         })
     }catch(err){
         res.status(500).json({

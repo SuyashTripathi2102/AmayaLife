@@ -7,6 +7,7 @@ const router = express.Router();
 
 router.post('/register', userControllers.registerUser);
 router.post('/login', userControllers.loginUser);
+router.get('/auth/verify-email',userControllers.verifyMailHandler);
 router.get('/getAllUsers',authMiddleware,roleBasedAuth('admin'), userControllers.getAllUsers);
 router.get('/getUserbyId/:id',userControllers.getUserbyId)
 router.put('/updateUserbyId/:id',userControllers.updateUserbyId);
