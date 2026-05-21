@@ -2,11 +2,24 @@ const mysql = require('../config/db');
 const bcrypt = require('bcrypt');
 const jwt = require('jsonwebtoken');
 const crypto = require('crypto');
+const { OAuth2Client } = require('google-auth-library');
 const { verifyMail } = require('../helper/emailHelper');
 
     function getAppUrl (){
         return process.env.APP_URL || `http://localhost:${process.env.PORT}`
     }
+
+
+    function getGoogleClient() {
+    return new OAuth2Client(
+        process.env.GOOGLE_CLIENT_ID,
+        process.env.GOOGLE_CLIENT_SECRET,
+        process.env.GOOGLE_REDIRECT_URI
+    );
+    }
+
+
+
     exports.register = async (userdata)=>{
         const {name,email,password,phoneNo,role} = userdata;
         if(!name || !email || !password || !phoneNo){
@@ -238,3 +251,67 @@ exports.deleteUserbyId = async (userId)=>{
     const [deleteUser] = await mysql.query("DELETE FROM users WHERE id=?",[id]);
     return deleteUser;
 }
+
+exports.googleAuthStartHandler = () => {
+    const client = getGoogleClient();
+    const url = client.generateAuthUrl({
+        access_type: 'offline',
+        prompt: 'consent',
+        scope: ['openid', 'email', 'profile']
+    });
+    return url;
+};
+
+exports.googleAuthCallbackHandler = async (code) => {
+    const client = getGoogleClient();
+    
+    // Step 1: exchange code for tokens
+    const { tokens } = await client.getToken(code);
+    
+    console.log(tokens,code,"codesssss");
+
+    // Step 2: verify the id_token → get user info from Google
+    const ticket = await client.verifyIdToken({
+        idToken: tokens.id_token,
+        audience: process.env.GOOGLE_CLIENT_ID
+    });
+    const { email, name, sub } = ticket.getPayload();
+    
+    // Step 3: find user in DB by google_id OR email
+    const [ifExist] = await mysql.query(
+        'SELECT * FROM users WHERE google_id = ? OR email = ?',
+        [sub, email]
+    );
+    
+    let user;
+    if (ifExist.length > 0) {
+        // Step 4a: user exists → use them
+        user = ifExist[0];
+    } else {
+        // Step 4b: new user → insert
+        const [result] = await mysql.query(
+            'INSERT INTO users (name, email, google_id, auth_provider, is_email_verified, two_factor_enabled) VALUES (?,?,?,?,?,?)',
+            [name, email, sub, 'google', true, false]
+        );
+        const [newUser] = await mysql.query('SELECT * FROM users WHERE id = ?', [result.insertId]);
+        user = newUser[0];
+    }
+    
+    // Step 5: issue your own JWT tokens
+    const Accesstoken = jwt.sign(
+        { id: user.id, email: user.email, role: user.role },
+        process.env.JWT_SECRET,
+        { expiresIn: '1h' }
+    );
+    const Refershtoken = jwt.sign(
+        { id: user.id },
+        process.env.JWT_SECRET,
+        { expiresIn: '7d' }
+    );
+    
+    return {
+        Accesstoken,
+        Refershtoken,
+        user: { id: user.id, email: user.email, role: user.role }
+    };
+};

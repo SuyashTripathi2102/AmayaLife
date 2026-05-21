@@ -17,4 +17,8 @@ router.get('/getUserbyId/:id',userControllers.getUserbyId)
 router.put('/updateUserbyId/:id',userControllers.updateUserbyId);
 router.patch('/partialUpdatebyId/:id',userControllers.patchUserbyId);
 router.delete('/deleteUserbyId/:id',userControllers.deleteUserbyId);
+
+
+router.get('/auth/google', userControllers.googleAuthStartHandler);
+router.get('/auth/google/callback', userControllers.googleAuthCallbackHandler);
 module.exports = router;

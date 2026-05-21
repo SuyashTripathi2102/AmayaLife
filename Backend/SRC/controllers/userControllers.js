@@ -173,3 +173,30 @@ exports.deleteUserbyId = async(req,res)=>{
         })
     }
 }
+
+exports.googleAuthStartHandler = (req, res) => {
+    try {
+        const url = userService.googleAuthStartHandler();
+        res.redirect(url);
+    } catch (error) {
+        res.status(500).json({ message: error.message });
+    }
+};
+
+exports.googleAuthCallbackHandler = async (req, res) => {
+    try {
+        const code = req.query.code;
+        const data = await userService.googleAuthCallbackHandler(code);
+        const { Accesstoken, Refershtoken, user } = data;
+        const isProd = process.env.ENV === 'production';
+        res.cookie('refreshtoken', Refershtoken, {
+            httpOnly: true,
+            secure: isProd,
+            sameSite: 'lax',
+            maxAge: 7 * 24 * 60 * 60 * 1000
+        });
+        res.status(200).json({ message: 'Google Login Successful', Accesstoken, user });
+    } catch (error) {
+        res.status(500).json({ message: error.message });
+    }
+};
