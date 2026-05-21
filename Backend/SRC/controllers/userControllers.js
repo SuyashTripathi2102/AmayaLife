@@ -51,6 +51,59 @@ exports.loginUser = async (req,res) =>{
     }
 }
 
+exports.refershToken = async (req,res)=>{
+    try{
+        const refersh = await userService.refershToken(req.cookies.refreshtoken);
+        res.status(200).json({
+            message : "New Token Genterated Successfully",
+            token : refersh
+        });
+    }catch(error){
+        res.status(401).json({
+            message : error.message
+        })
+    }
+}
+
+exports.logout = async (req,res)=>{
+    try{
+            res.clearCookie('refreshtoken',{path:'/'});
+            res.status(200).json({
+            message : "Logout Successfully", 
+        });
+    }catch(error){
+        res.status(401).json({
+            message : error.message
+        })
+    }
+}
+
+
+exports.forgetPassword = async (req,res)=>{
+    try{
+        const data = await userService.forgetPassword(req.body);
+         res.status(200).json({
+            message : "Mail Sent for new Password Successfully",
+        });
+    }catch(error){
+        res.status(401).json({
+            message : error.message
+        })
+    }
+}
+
+exports.resetPassword = async (req,res)=>{
+    try{
+        const data = await userService.resetPassword(req.body,req.query.token);
+         res.status(200).json({
+            message : "New Password SET Successfully",
+        });
+    }catch(error){
+        res.status(401).json({
+            message : error.message
+        })
+    }
+}
 exports.getAllUsers = async (req,res) =>{
     try{
         const data = await userService.getAllUsers();

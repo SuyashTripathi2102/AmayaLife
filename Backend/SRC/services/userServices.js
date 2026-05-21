@@ -1,6 +1,7 @@
 const mysql = require('../config/db');
 const bcrypt = require('bcrypt');
 const jwt = require('jsonwebtoken');
+const crypto = require('crypto');
 const { verifyMail } = require('../helper/emailHelper');
 
     function getAppUrl (){
@@ -23,7 +24,7 @@ const { verifyMail } = require('../helper/emailHelper');
         const verifyToken = jwt.sign({
             id : result.insertId,
             name : name,
-        },process.env.JWT_SECRET,{expiresIn:'1d'});
+        },process.env.JWT_SECRET,{expiresIn:'5m'});
 
         const verifyURL = `${getAppUrl()}/api/users/auth/verify-email?token=${verifyToken}`
         
@@ -100,6 +101,75 @@ exports.login = async (userdata)=>{
         }
 
     }
+}
+
+exports.refershToken = async (token)=>{
+    if(!token){
+        throw new Error ('Refersh Token is not Present pls check');
+    }
+    const decode = jwt.verify(token,process.env.JWT_SECRET);
+    const {id} = decode;
+    const [ifExist]  = await mysql.query("SELECT * FROM users WHERE id = ? ",[id]);
+    if(ifExist.length === 0){
+        throw new Error("User not found with this id");
+    }
+    const user = ifExist[0];
+    const newAccessToken = jwt.sign({id:user.id,email:user.email,role:user.role},process.env.JWT_SECRET,{expiresIn:'1h'});
+    return newAccessToken;
+}
+
+exports.forgetPassword = async(userData)=>{
+    const {email} = userData;
+    if(!email){
+        throw new Error("EMAIL IS REQUIRED");
+    }
+    const [ifExist]  = await mysql.query("SELECT * FROM users WHERE email = ? ",[email]);
+    if(ifExist.length === 0){
+        throw new Error("User not found with this email");
+    }
+    const user = ifExist[0];
+    const rawToken = crypto.randomBytes(32).toString('hex');
+    const hashedToken = crypto.createHash('sha256').update(rawToken).digest('hex');
+
+    const RestPassToken = hashedToken;
+    const RestPassExpire = new Date(Date.now() + 15*60*1000); 
+    
+    const [update] = await mysql.query("UPDATE users SET reset_password_token=?,reset_password_expires=? WHERE email=?",[RestPassToken,RestPassExpire,email]);
+    if(update.affectedRows==0){
+        throw new Error("Some thing went wrong");
+    }
+
+    const restURL = `${getAppUrl()}/api/users/auth/reset-password?token=${rawToken}`;
+    await verifyMail(user.email,
+        "RESET YOUR PASSWORD",
+        `<p>Pls reset your password by clicking below link</p>
+        <p><a href='${restURL}'>${restURL}</a></p>
+        `
+    );
+    
+    return update;
+}
+
+exports.resetPassword = async (userData,token)=>{
+    const {Newpassword} = userData;
+    if(!Newpassword || Newpassword.length<6){
+        throw new Error("Pls provide atleast 6 character new passwords for reset");
+    }
+    if(!token){
+        throw new Error("Token is missing");
+    }
+    const tokenHash = crypto.createHash('sha256').update(token).digest('hex');
+    const [ifExist] = await mysql.query('SELECT * FROM users WHERE reset_password_token= ? AND reset_password_expires> NOW()',[tokenHash]);
+    if(ifExist.length==0){
+        throw new Error("no User Found");
+    }
+    const user = ifExist[0];
+    const newpasswordUpdate = await bcrypt.hash(Newpassword,10);
+    const [Update] = await mysql.query("UPDATE users SET password = ?,reset_password_token=?,reset_password_expires=? WHERE id=?",[newpasswordUpdate,null,null,user.id]);
+    if(Update.affectedRows==0){
+        throw new Error ("RESET Password Failed");
+    }
+    return Update;
 }
 
 exports.getAllUsers = async ()=>{
