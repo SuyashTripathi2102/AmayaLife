@@ -1,6 +1,6 @@
 const productService = require('../services/productServices');
 
-exports.getAllProducts = async (req,res) =>{
+exports.getAllProducts = async (req,res,next) =>{
     try{
         const page = parseInt(req.query.page) || 1;
         const limit = parseInt(req.query.limit) || 5;
@@ -13,12 +13,10 @@ exports.getAllProducts = async (req,res) =>{
             data : data
         })
     }catch(error){
-        res.status(500).json({
-            message : error.message
-        })
+        next(error)
     }
 }
-exports.getAllActiveProducts = async (req,res) =>{
+exports.getAllActiveProducts = async (req,res,next) =>{
     try{
         const page = parseInt(req.query.page) || 1;
         const limit = parseInt(req.query.limit) || 5;
@@ -31,13 +29,11 @@ exports.getAllActiveProducts = async (req,res) =>{
             data : data
         })
     }catch(error){
-        res.status(500).json({
-            message : error.message
-        })
+        next(error)
     }
 }
 
-exports.addNewProducts = async (req,res) =>{
+exports.addNewProducts = async (req,res,next) =>{
 try{
         const data = await productService.addNewProducts(req.body);
         res.status(201).json({
@@ -45,13 +41,11 @@ try{
             data : data
         })
     }catch(error){
-        res.status(500).json({
-            message : error.message
-        })
+       next(error)
     }
 }
 
-exports.getProductbyId = async (req,res) =>{
+exports.getProductbyId = async (req,res,next) =>{
     try{
         const data = await productService.getProductbyId(req.params.id);
         res.status(200).json({
@@ -59,13 +53,11 @@ exports.getProductbyId = async (req,res) =>{
             data : data
         })
     }catch(error){
-        res.status(500).json({
-            message : error.message
-        })
+        next(error)
     }
 }
 
-exports.updateProductbyId = async (req,res) =>{
+exports.updateProductbyId = async (req,res,next) =>{
     try{
         const data = await productService.updateProductbyId(req.params.id,req.body);
         res.status(200).json({
@@ -73,13 +65,11 @@ exports.updateProductbyId = async (req,res) =>{
             data : data
         })
     }catch(error){
-        res.status(500).json({
-            message : error.message
-        })
+        next(error)
     }
 }
 
-exports.patchProductbyId = async (req,res) =>{
+exports.patchProductbyId = async (req,res,next) =>{
     try{
         const data = await productService.patchProductbyId(req.params.id,req.body);
         res.status(200).json({
@@ -87,13 +77,11 @@ exports.patchProductbyId = async (req,res) =>{
             data : data
         })
     }catch(error){
-        res.status(500).json({
-            message : error.message
-        })
+        next(error)
     }
 }
 
-exports.deleteProductbyId = async (req,res) =>{
+exports.deleteProductbyId = async (req,res,next) =>{
     try{
         const data = await productService.deleteProductbyId(req.params.id);
         res.status(200).json({
@@ -101,13 +89,11 @@ exports.deleteProductbyId = async (req,res) =>{
             data : data
         })
     }catch(error){
-        res.status(500).json({
-            message : error.message
-        })
+       next(error)
     } 
 }
 
-exports.SoftDeleteProductbyId = async (req,res) =>{
+exports.SoftDeleteProductbyId = async (req,res,next) =>{
     try{
         const data = await productService.SoftDeleteProductbyId(req.params.id);
         res.status(200).json({
@@ -115,8 +101,6 @@ exports.SoftDeleteProductbyId = async (req,res) =>{
             data : data
         })
     }catch(error){
-        res.status(500).json({
-            message : error.message
-        })
+        next(error)
     } 
 }

@@ -1,7 +1,7 @@
 const imageService =
 require('../services/cloudImageServices');
 
-exports.uploadProductImage = async (req,res)=>{
+exports.uploadProductImage = async (req,res,next)=>{
     try{
         // product id from params
         const productId = req.params.id;
@@ -24,14 +24,12 @@ exports.uploadProductImage = async (req,res)=>{
             data
         });
     }catch(error){
-        res.status(500).json({
-            error: error.message
-        });
+        next(error)
     }
 };
 
 
-exports.getAllProductsImages = async (req,res) =>{
+exports.getAllProductsImages = async (req,res,next) =>{
     try{
         const productId = req.params.id;
         const data = await imageService.getAllProductsImages(productId);
@@ -41,13 +39,11 @@ exports.getAllProductsImages = async (req,res) =>{
                 data
             });
     }catch(error){
-            res.status(500).json({
-                error: error.message
-            });
+            next(error)
         }
 };
 
-exports.deleteImagebyId = async (req,res)=>{
+exports.deleteImagebyId = async (req,res,next)=>{
     try{
         const ImageId = req.params.id;
         const data = await imageService.deleteImagebyId(ImageId);
@@ -57,8 +53,6 @@ exports.deleteImagebyId = async (req,res)=>{
                 data
             });
     }catch(error){
-            res.status(500).json({
-                error: error.message
-            });
+            next(error)
         }
 }

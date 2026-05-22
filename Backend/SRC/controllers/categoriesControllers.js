@@ -1,6 +1,6 @@
 const categoriesServices = require('../services/categoriesServices');
 
-exports.getAllCategories = async (req,res) =>{
+exports.getAllCategories = async (req,res,next) =>{
     try{
         const data = await categoriesServices.getAllCategories();
         res.status(200).json({
@@ -8,13 +8,11 @@ exports.getAllCategories = async (req,res) =>{
             data : data
         })
     }catch(error){
-        res.status(500).json({
-            message : error.message
-        })
+        next(error)
     }
 }
 
-exports.getCategorybyId = async (req,res) =>{
+exports.getCategorybyId = async (req,res,next) =>{
     try{
         const data = await categoriesServices.getCategorybyId(req.params.id);
         res.status(200).json({
@@ -22,13 +20,11 @@ exports.getCategorybyId = async (req,res) =>{
             data : data
         })
     }catch(error){
-        res.status(500).json({
-            message : error.message
-        })
+        next(error)
     }
 }
 
-exports.updateCategorybyId = async (req,res)=>{
+exports.updateCategorybyId = async (req,res,next)=>{
     try{
         const data = await categoriesServices.updateCategorybyId(req.params.id,req.body);
         res.status(201).json({
@@ -36,13 +32,11 @@ exports.updateCategorybyId = async (req,res)=>{
             data : data
         })
     }catch(error){
-        res.status(500).json({
-            message : error.message
-        })
+      next(error)
     }
 }
 
-exports.postCategories = async (req,res)=>{
+exports.postCategories = async (req,res,next)=>{
     try{
         const data = await categoriesServices.postCategories(req.body);
         res.status(201).json({
@@ -50,13 +44,11 @@ exports.postCategories = async (req,res)=>{
             data : data
         })
     }catch(error){
-        res.status(500).json({
-            message  : error.message
-        })
+        next(error)
     }
 }
 
-exports.deleteCategoriesbyId = async (req,res) => {
+exports.deleteCategoriesbyId = async (req,res,next) => {
     try{
             const data = await categoriesServices.deleteCategoriesbyId(req.params.id);
             res.status(200).json({
@@ -64,8 +56,6 @@ exports.deleteCategoriesbyId = async (req,res) => {
                 data : data
             })
         }catch(error){
-            res.status(500).json({
-                message : error.message
-            })
+            next(error)
         } 
 }

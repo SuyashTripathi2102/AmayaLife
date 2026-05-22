@@ -5,6 +5,8 @@ const userRoutes = require('./routes/userRoutes');
 const userCategoriesRoutes = require('./routes/categorieRoutes');
 const userProductsRoutes = require('./routes/productRoutes');
 const imageRoutes = require('./routes/imageRoutes');
+const errorHandler = require('./middlewares/errorHandler');
+
 const app = express();
 app.use(express.json());
 app.use(cookieParser());
@@ -14,6 +16,7 @@ app.use('/api',userCategoriesRoutes);
 app.use('/api',userProductsRoutes);
 app.use('/api',imageRoutes);
 
+app.use(errorHandler);
 
 const PORT = process.env.PORT
 app.listen(PORT,()=>{
