@@ -6,6 +6,7 @@ const userCategoriesRoutes = require('./routes/categorieRoutes');
 const userProductsRoutes = require('./routes/productRoutes');
 const imageRoutes = require('./routes/imageRoutes');
 const errorHandler = require('./middlewares/errorHandler');
+const {apiLimiter} = require('./middlewares/rateLimiter');
 const cors = require('cors');
 const helmet = require('helmet');
 
@@ -19,6 +20,7 @@ const corsOptions = {
 };
 app.use(helmet());
 app.use(cors(corsOptions));
+app.use(apiLimiter);
 
 app.use(express.json());
 app.use(cookieParser());

@@ -16,6 +16,6 @@ module.exports = (req, res, next) => {
     next();
     }catch(error){
         //console.error('Error in authenticateToken middleware:', error);
-        return res.status(500).json({ message: error.message });
+        return res.status(401).json({ message: error.message });
     }
 }

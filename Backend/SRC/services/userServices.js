@@ -186,8 +186,11 @@ exports.getUserbyId = async (userId) => {
     return isExist;
 };
 
-exports.updateUserbyId = async (userId, userData) => {
+exports.updateUserbyId = async (userId, userData,loggedInUser) => {
     const { id } = userId;
+    if(parseInt(loggedInUser.id)!== parseInt(id)&& loggedInUser.role!=='admin'){
+        throw new AppError('You are not authorized to update this user', 403);
+    }
     const { name, email, phoneNo, role } = userData;
     const [updateUser] = await mysql.query(
         "UPDATE users SET name=?,email=?,phoneNo=?,role=? WHERE id=?",
@@ -199,9 +202,12 @@ exports.updateUserbyId = async (userId, userData) => {
     return { id, name, email, phoneNo, role };
 };
 
-exports.patchUserbyId = async (userId, userData) => {
+exports.patchUserbyId = async (userId, userData,loggedInUser) => {
     const { id } = userId;
     const { name, email, phoneNo, role } = userData;
+    if(parseInt(loggedInUser.id)!== parseInt(id)&& loggedInUser.role!=='admin'){
+        throw new AppError('You are not authorized to update this user', 403);
+    }
     const [isExist] = await mysql.query("SELECT * FROM users WHERE id=?", [id]);
     if (isExist.length == 0) {
         throw new AppError("User does not exist", 404);

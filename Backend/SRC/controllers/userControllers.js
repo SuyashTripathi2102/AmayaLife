@@ -58,6 +58,7 @@ exports.refershToken = async (req,res,next)=>{
 exports.logout = async (req,res,next)=>{
     try{
         clearRefreshCookie(res);
+        clearCsrfCookie(res);
             res.status(200).json({
             message : "Logout Successfully", 
         });
@@ -114,7 +115,7 @@ exports.getUserbyId = async(req,res,next)=>{
 
 exports.updateUserbyId = async(req,res,next)=>{
     try{
-        const data = await userService.updateUserbyId (req.params,req.body);
+        const data = await userService.updateUserbyId (req.params,req.body,req.user);
         res.status(200).json({
             message : "Users Fetched and Updated successfully by Id",
             data : data
@@ -126,7 +127,7 @@ exports.updateUserbyId = async(req,res,next)=>{
 
 exports.patchUserbyId = async(req,res,next)=>{
     try{
-        const data = await userService.patchUserbyId (req.params,req.body);
+        const data = await userService.patchUserbyId (req.params,req.body,req.user);
         res.status(200).json({
             message : "Users Fetched and Partial Updated successfully by Id",
             data : data

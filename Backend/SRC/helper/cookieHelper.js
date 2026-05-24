@@ -29,5 +29,14 @@ const setCsrfCookie = (res, token) => {
     });
 };
 
-module.exports = { setRefreshCookie, clearRefreshCookie , setCsrfCookie };
+const clearCsrfCookie = (res) => {
+    const isProd = process.env.ENV === 'production';
+    res.clearCookie('csrf_token', {
+        httpOnly: false,
+        secure: isProd,
+        sameSite: 'lax',
+        path: '/'
+    });
+};
+module.exports = { setRefreshCookie, clearRefreshCookie , setCsrfCookie ,clearCsrfCookie };
 
