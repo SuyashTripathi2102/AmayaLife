@@ -1,4 +1,7 @@
 const userService = require('../services/userServices');
+const { setRefreshCookie, clearRefreshCookie , setCsrfCookie } = require('../helper/cookieHelper');
+const crypto = require('crypto');
+
 
 exports.registerUser = async (req,res,next) =>{
     try{
@@ -27,14 +30,9 @@ exports.loginUser = async (req,res,next) =>{
     try{
         const data = await userService.login(req.body);
         const {Accesstoken, Refershtoken, user} = data;
-        const isProd = process.env.ENV === 'production';
-        res.cookie ("refreshtoken",Refershtoken,{
-        httpOnly : true,
-        secure : isProd,
-        sameSite : 'lax',
-        maxAge :7*24*60*60*1000
-        })
-
+        const csrfToken = crypto.randomBytes(32).toString('hex');
+        setRefreshCookie(res, Refershtoken);
+        setCsrfCookie(res, csrfToken);
         res.status(200).json({
             message : "User Logined successfully",
             user : user,
@@ -59,7 +57,7 @@ exports.refershToken = async (req,res,next)=>{
 
 exports.logout = async (req,res,next)=>{
     try{
-            res.clearCookie('refreshtoken',{path:'/'});
+        clearRefreshCookie(res);
             res.status(200).json({
             message : "Logout Successfully", 
         });
@@ -164,13 +162,9 @@ exports.googleAuthCallbackHandler = async (req, res,next) => {
         const code = req.query.code;
         const data = await userService.googleAuthCallbackHandler(code);
         const { Accesstoken, Refershtoken, user } = data;
-        const isProd = process.env.ENV === 'production';
-        res.cookie('refreshtoken', Refershtoken, {
-            httpOnly: true,
-            secure: isProd,
-            sameSite: 'lax',
-            maxAge: 7 * 24 * 60 * 60 * 1000
-        });
+        const csrfToken = crypto.randomBytes(32).toString('hex');
+        setRefreshCookie(res, Refershtoken);
+        setCsrfCookie(res, csrfToken);
         res.status(200).json({ message: 'Google Login Successful', Accesstoken, user });
     } catch (error) {
        next(error)
