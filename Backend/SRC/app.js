@@ -9,6 +9,8 @@ const errorHandler = require('./middlewares/errorHandler');
 const {apiLimiter} = require('./middlewares/rateLimiter');
 const cors = require('cors');
 const helmet = require('helmet');
+const cartRoutes = require('./routes/cartRoutes');
+
 
 
 const app = express();
@@ -29,6 +31,8 @@ app.use('/api/users',userRoutes);
 app.use('/api',userCategoriesRoutes);
 app.use('/api',userProductsRoutes);
 app.use('/api',imageRoutes);
+app.use('/api', cartRoutes);
+
 
 app.use(errorHandler);
 
