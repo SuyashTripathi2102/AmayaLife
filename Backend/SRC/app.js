@@ -10,6 +10,7 @@ const {apiLimiter} = require('./middlewares/rateLimiter');
 const cors = require('cors');
 const helmet = require('helmet');
 const cartRoutes = require('./routes/cartRoutes');
+const orderRoutes = require('./routes/orderRoutes');
 
 
 
@@ -32,6 +33,8 @@ app.use('/api',userCategoriesRoutes);
 app.use('/api',userProductsRoutes);
 app.use('/api',imageRoutes);
 app.use('/api', cartRoutes);
+app.use('/api', orderRoutes);
+
 
 
 app.use(errorHandler);
