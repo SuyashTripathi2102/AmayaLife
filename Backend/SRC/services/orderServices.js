@@ -1,7 +1,8 @@
-const { application } = require('express');
 const mysql = require('../config/db');
 const AppError = require('../utils/AppError');
 const cartServices = require('./cartServices');
+const razorpay = require('../config/razorpayConfig');
+const crypto = require('crypto');
 
 
 exports.placeOrders = async (userData) =>{
@@ -110,4 +111,73 @@ exports.cancelOrder = async (userId,params) =>{
         throw new AppError ("Order Cant be canceled as its not pending",400);
     }
     return cancelOrder;
+}
+
+
+exports.initiatePayment = async (params,userData) =>{
+    const {id:userId} = userData;
+    const {id:orderId} = params
+    if(!userId || !orderId){
+        throw new AppError("orderId / userId is missing",400)
+    }
+    const [findData] = await mysql.query("SELECT * FROM orders WHERE id = ? AND user_id = ?",[orderId,userId]);
+    if(findData.length==0){
+        throw new AppError("Order Not Found",404);
+    } 
+    if(findData[0].status!=='pending'){
+        throw new AppError("Already Paid or Cancelled",400);
+    }
+
+    const order = findData[0];
+    let razorpayOrder;
+    try {
+    razorpayOrder = await razorpay.orders.create({
+    amount: Math.round(order.total_amount * 100),
+    currency: 'INR',
+    receipt: `order_${orderId}`
+    });
+    } catch (err) {
+    console.log('Razorpay full error:', JSON.stringify(err));
+    throw new AppError('Razorpay API call failed', 500);
+    }
+    const [update] = await mysql.query(
+    'UPDATE orders SET razorpay_order_id = ? WHERE id = ?',
+    [razorpayOrder.id, orderId]
+    );
+
+    return {
+    razorpayOrderId: razorpayOrder.id,
+    amount: razorpayOrder.amount,
+    currency: razorpayOrder.currency,
+    orderId
+    };
+}
+
+exports.handleWebhook = async (weebhookData) =>{
+    const {razorpay_order_id,razorpay_payment_id,razorpay_signature} = weebhookData;
+
+    if(!razorpay_order_id|| !razorpay_payment_id || !razorpay_signature){
+        throw new AppError('Missing payment data',400);
+    }
+
+    const expectedSignature = crypto
+    .createHmac('sha256', process.env.RAZORPAY_KEY_SECRET)
+    .update(razorpay_order_id + '|' + razorpay_payment_id)
+    .digest('hex');
+
+    if (expectedSignature !== razorpay_signature) {
+        throw new AppError('Invalid payment signature', 400);
+    }
+
+    const [findData] = await mysql.query("SELECT * FROM orders WHERE razorpay_order_id = ?",[razorpay_order_id]);
+    if(findData.length==0){
+        throw new AppError("Order Not Found",404);
+    } 
+    const [update] = await mysql.query('UPDATE orders SET status=? WHERE id=?',['paid',findData[0].id]);
+        if(update.affectedRows==0){
+            throw new AppError ("Failed to Update the Status",500);
+        }
+        
+    return update;
+
 }
