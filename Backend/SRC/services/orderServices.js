@@ -3,6 +3,7 @@ const AppError = require('../utils/AppError');
 const cartServices = require('./cartServices');
 const razorpay = require('../config/razorpayConfig');
 const crypto = require('crypto');
+const { verifyMail } = require('../helper/emailHelper');
 
 
 exports.placeOrders = async (userData) =>{
@@ -177,7 +178,24 @@ exports.handleWebhook = async (weebhookData) =>{
         if(update.affectedRows==0){
             throw new AppError ("Failed to Update the Status",500);
         }
-        
+    const [orderInfo] = await mysql.query(
+    `SELECT u.email, u.name, o.total_amount, o.id as order_id 
+     FROM orders o 
+     JOIN users u ON o.user_id = u.id 
+     WHERE o.id = ?`,
+    [findData[0].id]
+    );
+
+    const user = orderInfo[0];
+    await verifyMail(
+        user.email,
+        `Order Confirmed - AmayaLife #${user.order_id}`,
+        `<h2>Hi ${user.name},</h2>
+        <p>Your order has been confirmed!</p>
+        <p><b>Order ID:</b> #${user.order_id}</p>
+        <p><b>Total Amount:</b> ₹${user.total_amount}</p>
+        <p>Thank you for shopping with AmayaLife.</p>`
+    );
     return update;
 
 }
